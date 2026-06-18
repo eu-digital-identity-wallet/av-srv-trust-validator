@@ -24,7 +24,7 @@ import java.nio.file.Path
 @ConfigurationProperties("trust-validator")
 data class TrustValidatorConfigurationProperties(
     val dss: DSSConfigurationProperties,
-    val lote: LoteConfigurationProperties,
+    val lote: LoteCacheConfigurationProperties,
     val trustSources: TrustSourcesConfigurationProperties? = null,
 )
 
@@ -32,7 +32,7 @@ data class DSSConfigurationProperties(
     val cacheLocation: Path,
 )
 
-data class LoteConfigurationProperties(
+data class LoteCacheConfigurationProperties(
     val cacheLocation: Path,
 )
 
@@ -50,6 +50,7 @@ data class TrustSourcesConfigurationProperties(
 data class TrustedListsConfigurationProperties(
     val lotl: LoTLConfigurationProperties? = null,
     val lote: LoTEConfigurationProperties? = null,
+    val tl: TLConfigurationProperties? = null,
 )
 
 data class LoTLConfigurationProperties(
@@ -63,6 +64,13 @@ data class LoTEConfigurationProperties(
     val location: URL,
     val issuanceService: URI,
     val revocationService: URI,
+)
+
+data class TLConfigurationProperties(
+    val location: URL,
+    val signatureVerification: KeyStoreConfigurationProperties? = null,
+    val issuanceService: URI,
+    val revocationService: URI? = null,
 )
 
 data class KeyStoreConfigurationProperties(
@@ -86,4 +94,5 @@ data class EAALoTLConfigurationProperties(
     val useCase: String,
     val lotl: LoTLConfigurationProperties? = null,
     val lote: LoTEConfigurationProperties? = null,
+    val tl: TLConfigurationProperties? = null,
 )

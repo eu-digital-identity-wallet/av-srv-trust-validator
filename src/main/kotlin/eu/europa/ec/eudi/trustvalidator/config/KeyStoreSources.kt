@@ -45,8 +45,8 @@ suspend fun TrustSourcesConfigurationProperties.isChainTrustedForContextUsingKey
 
 private fun TrustSourcesConfigurationProperties.configuredVerificationContexts(): Set<VerificationContext> =
     buildSet {
-        fun TrustedListsConfigurationProperties?.isConfigured(): Boolean = null != this && (null != lotl || null != lote)
-        fun EAALoTLConfigurationProperties.isConfigured(): Boolean = null != lotl || null != lote
+        fun TrustedListsConfigurationProperties?.isConfigured(): Boolean = null != this && (null != lotl || null != lote || null != tl)
+        fun EAALoTLConfigurationProperties.isConfigured(): Boolean = null != lotl || null != lote || null != tl
 
         if (walletProviders.isConfigured()) {
             add(VerificationContext.WalletProviderAttestation)

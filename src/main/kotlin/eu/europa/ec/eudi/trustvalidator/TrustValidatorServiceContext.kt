@@ -33,6 +33,7 @@ import eu.europa.ec.eudi.trustvalidator.config.TrustValidatorConfigurationProper
 import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingKeyStore
 import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingLoTE
 import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingLoTL
+import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingTL
 import eu.europa.ec.eudi.trustvalidator.port.input.trust.IsChainTrustedUseCase
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -81,6 +82,14 @@ internal class TrustValidatorServiceContext : BeanRegistrarDsl({
         } ?: IsChainTrustedForContextF.empty()
     }
 
+    registerBean(name = "is-chain-trusted-using-tl", infrastructure = true, autowirable = false) {
+        val config = bean<TrustValidatorConfigurationProperties>()
+        config.trustSources?.isChainTrustedForContextUsingTL(
+            config.dss.cacheLocation,
+            bean("dss-executor"),
+        ) ?: IsChainTrustedForContextF.empty()
+    }
+
     registerBean(infrastructure = true) {
         HttpClient(CIO) {
             install(ContentNegotiation) {
@@ -116,10 +125,12 @@ internal class TrustValidatorServiceContext : BeanRegistrarDsl({
             bean<IsChainTrustedForContextF<List<X509Certificate>, VerificationContext, TrustAnchor>>("is-chain-trusted-using-lotl")
         val isChainTrustedUsingLoTE =
             bean<IsChainTrustedForContextF<List<X509Certificate>, VerificationContext, TrustAnchor>>("is-chain-trusted-using-lote")
+        val isChainTrustedUsingTL =
+            bean<IsChainTrustedForContextF<List<X509Certificate>, VerificationContext, TrustAnchor>>("is-chain-trusted-using-tl")
         val isChainTrustedUsingKeyStore =
             bean<IsChainTrustedForContextF<List<X509Certificate>, VerificationContext, TrustAnchor>>("is-chain-trusted-using-keyStore")
 
-        isChainTrustedUsingLoTL or isChainTrustedUsingLoTE or isChainTrustedUsingKeyStore
+        isChainTrustedUsingLoTL or isChainTrustedUsingLoTE or isChainTrustedUsingTL or isChainTrustedUsingKeyStore
     }
 
     registerBean<IsChainTrustedUseCase>()
@@ -157,6 +168,11 @@ internal class TrustValidatorServiceContext : BeanRegistrarDsl({
     registerBean {
         val http = bean<ServerHttpSecurity>()
         http {
+            authorizeExchange { // all endpoints are publicly accessible; trust verification is a stateless lookup
+                authorize(anyExchange, permitAll)
+            }
+            httpBasic { disable() }
+            formLogin { disable() }
             cors { // cross-origin resource sharing configuration
                 configurationSource = CorsConfigurationSource {
                     CorsConfiguration().apply {
