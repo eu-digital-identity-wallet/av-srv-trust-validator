@@ -1,0 +1,13 @@
+# Keep the build context small (important for `az acr build`, which uploads it).
+.git
+.github
+.gradle
+.kotlin
+.idea
+build
+docker
+security
+*.md
+LICENSE
+FileHeader.txt
+gradlew.bat
