@@ -29,11 +29,13 @@ import eu.europa.ec.eudi.trustvalidator.adapter.input.web.TrustValidatorUi
 import eu.europa.ec.eudi.trustvalidator.adapter.out.consultation.empty
 import eu.europa.ec.eudi.trustvalidator.adapter.out.consultation.or
 import eu.europa.ec.eudi.trustvalidator.adapter.out.scheduling.dss.CleanupDSSCache
+import eu.europa.ec.eudi.trustvalidator.adapter.out.scheduling.tl.RefreshTrustedLists
+import eu.europa.ec.eudi.trustvalidator.config.TLTrustSources
 import eu.europa.ec.eudi.trustvalidator.config.TrustValidatorConfigurationProperties
 import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingKeyStore
 import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingLoTE
 import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingLoTL
-import eu.europa.ec.eudi.trustvalidator.config.isChainTrustedForContextUsingTL
+import eu.europa.ec.eudi.trustvalidator.config.tlTrustSources
 import eu.europa.ec.eudi.trustvalidator.port.input.trust.IsChainTrustedUseCase
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -82,12 +84,21 @@ internal class TrustValidatorServiceContext : BeanRegistrarDsl({
         } ?: IsChainTrustedForContextF.empty()
     }
 
-    registerBean(name = "is-chain-trusted-using-tl", infrastructure = true, autowirable = false) {
+    registerBean(infrastructure = true) {
         val config = bean<TrustValidatorConfigurationProperties>()
-        config.trustSources?.isChainTrustedForContextUsingTL(
+        config.trustSources?.tlTrustSources(
             config.dss.cacheLocation,
             bean("dss-executor"),
-        ) ?: IsChainTrustedForContextF.empty()
+            bean(),
+        ) ?: TLTrustSources(emptyMap())
+    }
+
+    registerBean(name = "is-chain-trusted-using-tl", infrastructure = true, autowirable = false) {
+        bean<TLTrustSources>().isChainTrusted
+    }
+
+    registerBean {
+        RefreshTrustedLists(bean<TLTrustSources>().trustedLists.values)
     }
 
     registerBean(infrastructure = true) {

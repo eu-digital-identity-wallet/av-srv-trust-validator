@@ -20,6 +20,7 @@ import org.springframework.core.io.Resource
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
+import java.time.Duration
 
 @ConfigurationProperties("trust-validator")
 data class TrustValidatorConfigurationProperties(
@@ -68,9 +69,26 @@ data class LoTEConfigurationProperties(
 
 data class TLConfigurationProperties(
     val location: URL,
-    val signatureVerification: KeyStoreConfigurationProperties? = null,
+    val signatureVerification: KeyStoreConfigurationProperties,
     val issuanceService: URI,
     val revocationService: URI? = null,
+    /**
+     * Service statuses for which a service is used as a trust anchor.
+     * When not set, services that are granted or recognised at national level (eIDAS) are used.
+     */
+    val trustedServiceStatuses: List<URI>? = null,
+    val refresh: TLRefreshConfigurationProperties = TLRefreshConfigurationProperties(),
+)
+
+data class TLRefreshConfigurationProperties(
+    /**
+     * Upper bound for the time between two refreshes. The Trusted List is refreshed earlier, when its next update is due.
+     */
+    val maxInterval: Duration = Duration.ofHours(6),
+    /**
+     * Time to wait before retrying a failed refresh.
+     */
+    val retryInterval: Duration = Duration.ofMinutes(5),
 )
 
 data class KeyStoreConfigurationProperties(
