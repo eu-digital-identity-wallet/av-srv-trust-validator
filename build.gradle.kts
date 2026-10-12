@@ -61,6 +61,7 @@ dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.spring.boot.starter.test)
+    implementation(kotlin("stdlib"))
 }
 
 kotlin {
